@@ -4,7 +4,7 @@ namespace pxlrbt\FilamentExcel\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
-use League\Flysystem\FileAttributes;
+use League\Flysystem\StorageAttributes;
 
 class PruneExportsCommand extends Command
 {
@@ -14,9 +14,9 @@ class PruneExportsCommand extends Command
 
     public function handle()
     {
-        collect(Storage::disk('filament-excel')->listContents('', false))
-            ->each(function (FileAttributes $file) {
-                if ($file->type() === 'file' && $file->lastModified() < now()->subDay()->getTimestamp()) {
+        collect(Storage::disk('filament-excel')->listContents('', true))
+            ->each(function (StorageAttributes $file) {
+                if ($file->isFile() && $file->lastModified() < now()->subDay()->getTimestamp()) {
                     Storage::disk('filament-excel')->delete($file->path());
                 }
             });
