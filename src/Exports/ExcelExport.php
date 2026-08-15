@@ -263,10 +263,11 @@ class ExcelExport implements FromQuery, HasHeadings, HasMapping, ShouldAutoSize,
 
         $filename = Str::uuid().'-'.$this->getFilename();
         $locale = app()->getLocale();
+        $panelId = Filament::getCurrentPanel()?->getId();
 
         $pendingDispatch = $this
             ->queueExport($filename, 'filament-excel', $this->getWriterType())
-            ->chain([fn () => ExportFinishedEvent::dispatch($filename, $userId, $locale)]);
+            ->chain([fn () => ExportFinishedEvent::dispatch($filename, $userId, $locale, $panelId)]);
 
         if ($this->getQueueName()) {
             $pendingDispatch->allOnQueue($this->getQueueName());

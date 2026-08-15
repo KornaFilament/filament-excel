@@ -5,7 +5,6 @@ namespace pxlrbt\FilamentExcel;
 use Filament\Facades\Filament;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Str;
 use pxlrbt\FilamentExcel\Commands\PruneExportsCommand;
 use pxlrbt\FilamentExcel\Events\ExportFinishedEvent;
 use Spatie\LaravelPackageTools\Package;
@@ -15,11 +14,16 @@ class FilamentExcelServiceProvider extends PackageServiceProvider
 {
     public function register(): void
     {
-        config()->set('filesystems.disks.filament-excel', [
-            'driver' => 'local',
-            'root' => storage_path('app/filament-excel'),
-            'url' => config('app.url').'/filament-excel',
-        ]);
+        // Only provide a default. Multi-server setups need to point this at a shared
+        // disk (S3, …) in config/filesystems.php, or the queue worker writes exports
+        // where the web server cannot find them.
+        if (config('filesystems.disks.filament-excel') === null) {
+            config()->set('filesystems.disks.filament-excel', [
+                'driver' => 'local',
+                'root' => storage_path('app/filament-excel'),
+                'url' => config('app.url').'/filament-excel',
+            ]);
+        }
 
         parent::register();
     }
@@ -42,25 +46,9 @@ class FilamentExcelServiceProvider extends PackageServiceProvider
             $schedule->command(PruneExportsCommand::class)->daily();
         });
 
-        Event::listen(ExportFinishedEvent::class, [$this, 'cacheExportFinishedNotification']);
-    }
-
-    public function cacheExportFinishedNotification(ExportFinishedEvent $event): void
-    {
-        if ($event->userId === null) {
-            return;
-        }
-
-        $key = FilamentExport::getNotificationCacheKey($event->userId);
-
-        $exports = cache()->pull($key, []);
-        $exports[] = [
-            'id' => Str::uuid()->toString(),
-            'filename' => $event->filename,
-            'userId' => $event->userId,
-            'locale' => $event->locale,
-        ];
-
-        cache()->put($key, $exports);
+        Event::listen(
+            ExportFinishedEvent::class,
+            fn (ExportFinishedEvent $event) => app(FilamentExport::class)->handleExportFinished($event)
+        );
     }
 }
