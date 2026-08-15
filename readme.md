@@ -34,9 +34,41 @@ Install via Composer. This will download the package and [Laravel Excel](https:/
 | 2.x            | 3.x              | 3.x                   | \> 8.1      |
 | 3.x            | 4.x, 5.x         | 3.x                   | \> 8.1      |
 | 4.x            | 4.x, 5.x         | 3.x, 4.x              | \> 8.1      |
+| 4.1            | 4.x, 5.x         | 3.x, 4.x              | \> 8.2      |
 
 ```bash
 composer require pxlrbt/filament-excel
+```
+
+### Requirements
+
+Starting with 4.1 the package only requires `filament/tables`, so it installs into apps that use the table builder standalone. `filament/filament` is optional and pulled in by your app, not by this package.
+
+### Table-only mode
+
+Everything works without panels except the features below, which need `filament/filament`:
+
+| Feature | Why |
+|---------|-----|
+| `fromForm()` | Reads the schema off a Filament resource. `fromTable()`, `fromModel()` and `withColumns()` work fine. |
+| `Actions\Pages\ExportAction`, exports from relation managers | Resource pages and relation managers are panel classes. |
+| Download notification for queued exports | It is delivered through `Filament::serving()`, which has no equivalent outside a panel. The export still runs and the file is still written — see below. |
+
+To notify users of a finished queued export without a panel, listen for `ExportFinishedEvent` yourself:
+
+```php
+use pxlrbt\FilamentExcel\Events\ExportFinishedEvent;
+
+Event::listen(ExportFinishedEvent::class, function (ExportFinishedEvent $event) {
+    // $event->filename, $event->userId, $event->locale
+    $url = URL::temporarySignedRoute(
+        'filament-excel-download',
+        now()->addHours(24),
+        ['path' => $event->filename]
+    );
+
+    // Mail it, broadcast it, store it — whatever fits your app.
+});
 ```
 
 ### Upgrading to Filament v4
@@ -75,7 +107,7 @@ composer require psr/simple-cache:^2.0 pxlrbt/filament-excel
 
 ## Quickstart
 
-Starting with v0.2 Filament Excel should work with both `filament/filament` and `filament/tables` packages. The most simple usage is just adding `ExportBulkAction` to your bulk actions.
+Filament Excel works with both the `filament/filament` and `filament/tables` packages (see [Table-only mode](#table-only-mode)). The most simple usage is just adding `ExportBulkAction` to your bulk actions.
 
 **Example for admin package**
 

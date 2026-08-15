@@ -34,7 +34,9 @@ class FilamentExcelServiceProvider extends PackageServiceProvider
 
     public function bootingPackage()
     {
-        Filament::serving(fn () => app(FilamentExport::class)->sendNotification());
+        if (class_exists(Filament::class)) {
+            Filament::serving(fn () => app(FilamentExport::class)->sendNotification());
+        }
 
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
             $schedule->command(PruneExportsCommand::class)->daily();
