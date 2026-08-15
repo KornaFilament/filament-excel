@@ -8,6 +8,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Support\Concerns\EvaluatesClosures;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Query\Builder;
@@ -281,10 +282,7 @@ class ExcelExport implements FromQuery, HasHeadings, HasMapping, ShouldAutoSize,
             ->send();
     }
 
-    /**
-     * @return Relation|Builder|mixed|null
-     */
-    public function query()
+    public function query(): Builder|EloquentBuilder|Relation
     {
         $query = $this->getQuery();
 

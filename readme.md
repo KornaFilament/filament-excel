@@ -43,6 +43,24 @@ composer require pxlrbt/filament-excel
 - `composer require pxlrbt/filament-excel:3.0`
 - The Action classes were simplified into a single `ExportBulkAction` and `ExportAction` for pages and tables
 
+### Upgrading to Laravel Excel v4
+
+Both Laravel Excel 3 and 4 are supported. Composer picks v4 automatically if your project meets its requirements (PHP 8.3+, Laravel 12 or 13), otherwise it stays on v3. Two things may need changing in your own code:
+
+- If you set the `$writerType` property directly in a custom export class, use `->withWriterType()` instead. The property was renamed to `$exportWriterType` because Laravel Excel v4 now declares a `$writerType` of its own.
+- If you override `query()` in a custom export class, add the return type Laravel Excel v4 requires:
+
+```php
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Query\Builder;
+
+public function query(): Builder|EloquentBuilder|Relation
+{
+    // ...
+}
+```
+
 ### Laravel > 9
 
 If composer require fails on Laravel 9 or greater because of the simple-cache dependency, you will have to specify the psr/simple-cache version as ^2.0 in your composer.json to satisfy the PhpSpreadsheet dependency. You can install both at the same time as:
