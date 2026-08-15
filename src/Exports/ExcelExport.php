@@ -254,11 +254,14 @@ class ExcelExport implements FromQuery, HasHeadings, HasMapping, ShouldAutoSize,
 
         $this->prepareQueuedExport();
 
-        Context::add('filament_excel_user_id', Filament::auth()->id());
-        Context::add('filament_excel_auth_guard', Filament::getAuthGuard());
+        // Panels are optional, so fall back to the default guard when none is active.
+        $panel = class_exists(Filament::class) ? Filament::getCurrentPanel() : null;
+        $userId = $panel?->auth()->id() ?? auth()->id();
+
+        Context::add('filament_excel_user_id', $userId);
+        Context::add('filament_excel_auth_guard', $panel?->getAuthGuard() ?? auth()->getDefaultDriver());
 
         $filename = Str::uuid().'-'.$this->getFilename();
-        $userId = Filament::auth()->id();
         $locale = app()->getLocale();
 
         $pendingDispatch = $this

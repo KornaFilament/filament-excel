@@ -5,11 +5,9 @@ namespace pxlrbt\FilamentExcel\Exports\Concerns;
 use Closure;
 use Filament\Forms\Components\Field;
 use Filament\Forms\Components\Repeater;
-use Filament\Resources\Table;
 use Filament\Schemas\Components\Form;
 use Filament\Schemas\Schema;
 use Filament\Tables;
-use Filament\Tables\Contracts\HasTable;
 use Illuminate\Database\Schema\Builder;
 use Illuminate\Support\Collection;
 use pxlrbt\FilamentExcel\Columns\Column;
@@ -193,14 +191,7 @@ trait WithColumns
     {
         $livewire = $this->getLivewire();
 
-        if ($livewire instanceof HasTable) {
-            $columns = collect($livewire->getTable()->getColumns());
-        } else {
-            $table = $this->getResourceClass()::table(new Table);
-            $columns = collect($table->getColumns());
-        }
-
-        return $columns
+        return collect($livewire->getTable()->getColumns())
             ->when(
                 $livewire->getTable()->hasToggleableColumns(),
                 fn ($collection) => $collection->reject(
