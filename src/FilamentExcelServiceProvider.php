@@ -38,7 +38,8 @@ class FilamentExcelServiceProvider extends PackageServiceProvider
 
     public function bootingPackage()
     {
-        if (class_exists(Filament::class)) {
+        // `filament` is the facade's binding and only exists when panels are installed.
+        if (app()->bound('filament')) {
             Filament::serving(fn () => app(FilamentExport::class)->sendNotification());
         }
 
