@@ -48,7 +48,7 @@ trait CanQueue
         $this->headings = $this->getHeadings();
 
         $this->filename = $this->getFilename();
-        $this->writerType = $this->getWriterType();
+        $this->exportWriterType = $this->getWriterType();
         $this->columnFormats = $this->getColumnFormats();
         $this->columnWidths = $this->getColumnWidths();
         $this->csvSettings = $this->getCsvSettings();
