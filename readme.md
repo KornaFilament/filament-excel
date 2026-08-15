@@ -28,11 +28,12 @@ Easily configure your Excel exports in Filament via a bulk or page action.
 
 Install via Composer. This will download the package and [Laravel Excel](https://laravel-excel.com/).
 
-| Plugin Version | Filament Version | PHP Version |
-|----------------|------------------|-------------|
-| 1.x            | 2.x              | \> 8.0      |
-| 2.x            | 3.x              | \> 8.1      |
-| 3.x            | 4.x, 5.x         | \> 8.1      |
+| Plugin Version | Filament Version | Laravel Excel Version | PHP Version |
+|----------------|------------------|-----------------------|-------------|
+| 1.x            | 2.x              | 3.x                   | \> 8.0      |
+| 2.x            | 3.x              | 3.x                   | \> 8.1      |
+| 3.x            | 4.x, 5.x         | 3.x                   | \> 8.1      |
+| 4.x            | 4.x, 5.x         | 3.x, 4.x              | \> 8.1      |
 
 ```bash
 composer require pxlrbt/filament-excel
@@ -43,12 +44,15 @@ composer require pxlrbt/filament-excel
 - `composer require pxlrbt/filament-excel:3.0`
 - The Action classes were simplified into a single `ExportBulkAction` and `ExportAction` for pages and tables
 
-### Upgrading to Laravel Excel v4
+### Upgrading to Filament Excel v4
 
-Both Laravel Excel 3 and 4 are supported. Composer picks v4 automatically if your project meets its requirements (PHP 8.3+, Laravel 12 or 13), otherwise it stays on v3. Two things may need changing in your own code:
+- `composer require pxlrbt/filament-excel:^4.0`
+- Adds support for [Laravel Excel v4](https://docs.laravel-excel.com/4.x/getting-started/upgrade.html), and with it PHP 8.5. Laravel Excel 3 keeps working: Composer picks v4 automatically if your project meets its requirements (PHP 8.3+, Laravel 12 or 13), otherwise it stays on v3. If you are on PHP 8.5, Laravel Excel v4 is the only option, since PhpSpreadsheet 1.x does not run on it.
 
-- If you set the `$writerType` property directly in a custom export class, use `->withWriterType()` instead. The property was renamed to `$exportWriterType` because Laravel Excel v4 now declares a `$writerType` of its own.
-- If you override `query()` in a custom export class, add the return type Laravel Excel v4 requires:
+Two things may need changing in your own code, and only if you have a custom export class:
+
+- If you set the `$writerType` property directly, use `->withWriterType()` instead. The property was renamed to `$exportWriterType` because Laravel Excel v4 declares a `$writerType` of its own.
+- If you override `query()`, add the return type Laravel Excel v4 requires:
 
 ```php
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
