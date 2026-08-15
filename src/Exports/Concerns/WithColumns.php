@@ -163,6 +163,16 @@ trait WithColumns
         $vars = $reflect->getClosureUsedVariables();
 
         foreach ($vars as $name => $value) {
+            // dateTime(), time() and the iso* variants default $format to a closure that
+            // reads the format off the table. Resolve it here, while the column is still
+            // mounted — it gets detached before the export runs. Record-dependent user
+            // closures throw when evaluated this early, so those are left untouched.
+            if ($value instanceof Closure) {
+                $vars[$name] = rescue(fn () => $invadedColumn->evaluate($value), fn () => $value, report: false);
+
+                continue;
+            }
+
             if (! is_null($value)) {
                 continue;
             }
@@ -180,11 +190,32 @@ trait WithColumns
         match (true) {
             $invadedColumn->isMoney() => $invadedColumn->money(...$vars),
             $invadedColumn->isNumeric() => $invadedColumn->numeric(...$vars),
+            // Every iso* variant funnels through isoDate(), so isDate() alone can't tell
+            // the two apart — rebinding an ISO column with date() turns 'L' into a leap
+            // year flag. The closure body is the only place the difference survives.
+            $invadedColumn->isDate() && $this->usesIsoFormatting($invadedColumn->formatStateUsing) => $invadedColumn->isoDate(...$vars),
             $invadedColumn->isDate() => $invadedColumn->date(...$vars),
             $invadedColumn->isTime() => $invadedColumn->time(...$vars),
 
             default => null,
         };
+    }
+
+    protected function usesIsoFormatting(Closure $formatStateUsing): bool
+    {
+        $reflect = new ReflectionFunction($formatStateUsing);
+
+        if (! $reflect->getFileName()) {
+            return false;
+        }
+
+        $source = implode('', array_slice(
+            file($reflect->getFileName()),
+            $reflect->getStartLine() - 1,
+            $reflect->getEndLine() - $reflect->getStartLine() + 1
+        ));
+
+        return str_contains($source, 'isoFormat(');
     }
 
     protected function createFieldMappingFromTable(): Collection
