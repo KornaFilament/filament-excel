@@ -12,6 +12,7 @@ class ExportFinishedEvent
         public string $filename,
         public int|string|null $userId,
         public string $locale,
+        public ?string $panelId = null,
     ) {
         //
     }

@@ -488,6 +488,43 @@ ExcelExport::make()->queue(queue: 'exports')
 ExcelExport::make()->queue(queue: 'exports', connection: 'redis')
 ```
 
+#### Queue workers on separate servers
+
+Queued exports are written by the worker and downloaded from the web server, so both sides need to agree on where the file lives and how the user gets told about it.
+
+**1. Use a shared disk.** By default exports go to `storage/app/filament-excel` on whichever machine ran the job. Define your own `filament-excel` disk in `config/filesystems.php` to override it — the package only registers the local default when that key is missing:
+
+```php
+'disks' => [
+    'filament-excel' => [
+        'driver' => 's3',
+        // ...
+    ],
+],
+```
+
+**2. Make sure the notification can reach the user.** There are two delivery paths:
+
+- **Database notifications** (`->databaseNotifications()` on your panel) are sent straight from the queue worker. The database is shared already, so nothing else is needed. This is the recommended setup.
+- **Otherwise** the notification is parked in the cache until the user's next page load, which only works if the worker and the web server share a cache store. The `file` and `array` drivers are per-machine — use Redis, Memcached or the database driver instead.
+
+If neither fits, skip the built-in notification and tell the user yourself:
+
+```php
+use pxlrbt\FilamentExcel\Events\ExportFinishedEvent;
+
+Event::listen(ExportFinishedEvent::class, function (ExportFinishedEvent $event) {
+    // $event->filename, $event->userId, $event->locale, $event->panelId
+    $url = URL::temporarySignedRoute(
+        'filament-excel-download',
+        now()->addHours(24),
+        ['path' => $event->filename]
+    );
+
+    // Mail it, broadcast it, store it — whatever fits your app.
+});
+```
+
 
 ## Custom exports
 
