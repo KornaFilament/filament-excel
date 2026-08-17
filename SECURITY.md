@@ -1,0 +1,19 @@
+# Security Policy
+
+## Supported Versions
+
+| Version | Supported |
+| ------- | --------- |
+| 4.x     | ✅        |
+| 3.x     | Security fixes only |
+| < 3.0   | ❌        |
+
+## Reporting a Vulnerability
+
+Please **do not** open a public issue for security problems. Report it through
+[GitHub's private vulnerability reporting](https://github.com/pxlrbt/filament-excel/security/advisories/new)
+instead.
+
+Include the affected version, a description of the issue, and steps to reproduce it if you have them.
+
+You'll get an acknowledgement within a few days. Once a fix is released, you'll be credited in the advisory unless you'd rather stay anonymous.
